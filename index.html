@@ -35,7 +35,6 @@
             padding: 2rem 1rem;
         }
 
-
         h1 {
             text-align: center;
             color: var(--primary);
@@ -256,6 +255,14 @@
         }
 
         @media (max-width: 640px) {
+            h1 {
+                display: none;
+            }
+
+            .question-header h3 {
+                font-size: 1.1rem;
+            }
+
             .options {
                 grid-template-columns: repeat(3, 1fr);
                 grid-template-rows: repeat(2, 1fr);
