@@ -642,7 +642,70 @@
     progressBar.style.width = `${progressPercentage}%`;
   }
 
-  // Show results
+  // Function to encode answers into URL parameters with obfuscation
+  function encodeAnswersToURL() {
+    const baseURL = window.location.href.split('?')[0];
+    let encodedData = [];
+
+    // For each topic, encode the answers
+    topics.forEach((topic, index) => {
+      const topicData = answers[topic];
+      // Format: topicIndex-q1childhood-q1now-q2childhood-q2now
+      encodedData.push(`${index}-${topicData.q1.childhood}-${topicData.q1.now}-${topicData.q2.childhood}-${topicData.q2.now}`);
+    });
+
+    // Join data and convert to Base64
+    const dataString = encodedData.join('_');
+    const obfuscatedData = btoa(dataString);
+
+    // Make the Base64 string URL-safe
+    const urlSafeData = obfuscatedData.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+    return `${baseURL}?r=${urlSafeData}`;
+  }
+
+  // Function to decode answers from URL parameters
+  function decodeAnswersFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const resultsParam = urlParams.get('r');
+
+    if (!resultsParam) return false;
+
+    try {
+      // Convert from URL-safe Base64 back to regular Base64
+      const base64Data = resultsParam.replace(/-/g, '+').replace(/_/g, '/');
+
+      // Add padding if needed
+      let paddedData = base64Data;
+      const padding = paddedData.length % 4;
+      if (padding) {
+        paddedData += '='.repeat(4 - padding);
+      }
+
+      // Decode from Base64
+      const dataString = atob(paddedData);
+      const encodedData = dataString.split('_');
+
+      encodedData.forEach(topicData => {
+        const [topicIndex, q1c, q1n, q2c, q2n] = topicData.split('-').map(Number);
+        const topic = topics[topicIndex];
+
+        if (topic) {
+          answers[topic] = {
+            q1: {childhood: q1c, now: q1n},
+            q2: {childhood: q2c, now: q2n}
+          };
+        }
+      });
+
+      return true;
+    } catch (e) {
+      console.error('Error decoding URL parameters:', e);
+      return false;
+    }
+  }
+
+  // Update showResults to include shareable link
   function showResults() {
     testContainer.classList.add("hidden");
     resultsContainer.classList.remove("hidden");
@@ -671,19 +734,111 @@
       }
 
       resultsHtml += `
-            <tr class="${rowClass}">
-                <td class="topic-cell">${topic}</td>
-                <td>${childhood1}</td>
-                <td>${now1}</td>
-                <td>${childhood2}</td>
-                <td>${now2}</td>
-                <td><strong>${Math.max(maxChildhood, maxNow)}</strong></td>
-            </tr>
-        `;
+      <tr class="${rowClass}">
+        <td class="topic-cell">${topic}</td>
+        <td>${childhood1}</td>
+        <td>${now1}</td>
+        <td>${childhood2}</td>
+        <td>${now2}</td>
+        <td><strong>${Math.max(maxChildhood, maxNow)}</strong></td>
+      </tr>
+    `;
     });
 
     resultsBody.innerHTML = resultsHtml;
+
+    // Add shareable link
+    const shareURL = encodeAnswersToURL();
+    const shareSection = document.createElement('div');
+    shareSection.className = 'share-section';
+    shareSection.innerHTML = `
+    <h3>Поделиться результатами</h3>
+    <div class="share-url-container">
+      <input type="text" id="share-url" value="${shareURL}" readonly>
+      <button id="copy-btn" class="button">Копировать</button>
+    </div>
+  `;
+
+    resultsContainer.appendChild(shareSection);
+
+    // Add copy functionality
+    document.getElementById('copy-btn').addEventListener('click', function() {
+      const shareUrlInput = document.getElementById('share-url');
+      shareUrlInput.select();
+      document.execCommand('copy');
+      this.textContent = 'Скопировано!';
+      setTimeout(() => {
+        this.textContent = 'Копировать';
+      }, 2000);
+    });
+
+    // Update URL with the results parameter without refreshing the page
+    history.pushState({}, '', shareURL);
   }
+
+  // Modify initTest to check for results in URL
+  const originalInitTest = initTest;
+  initTest = function() {
+    // Initialize empty answers object
+    topics.forEach(topic => {
+      answers[topic] = {
+        q1: {childhood: null, now: null},
+        q2: {childhood: null, now: null}
+      };
+    });
+
+    // Check if there are results in the URL
+    if (decodeAnswersFromURL()) {
+      // Skip the test and show results directly
+      showResults();
+    } else {
+      // Run the original initialization
+      displayQuestion();
+      updateProgressBar();
+      nextButton.addEventListener("click", handleNextQuestion);
+    }
+  };
+
+  // Add some CSS for the share section
+  const styleElement = document.createElement('style');
+  styleElement.textContent = `
+  .share-section {
+    margin-top: 2rem;
+  }
+
+  .share-url-container {
+    display: flex;
+    margin-top: 1rem;
+  }
+
+  #share-url {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 4px 0 0 4px;
+  }
+
+  #copy-btn {
+    border-radius: 0 4px 4px 0;
+    margin: 0;
+  }
+
+  @media (max-width: 640px) {
+    .share-url-container {
+      flex-direction: column;
+    }
+
+    #share-url {
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+
+    #copy-btn {
+      border-radius: 4px;
+    }
+  }
+`;
+  document.head.appendChild(styleElement);
 
 
   // Start the test
