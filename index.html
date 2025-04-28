@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Опросник о ловушках</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --warning-bg: rgba(239, 68, 68, 0.1);
+            --text: #1f2937;
+            --text-light: #4b5563;
+            --text-lighter: #9ca3af;
+            --bg: #ffffff;
+            --bg-card: #f9fafb;
+            --border: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background-color: var(--bg);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 2rem;
+        }
+
+        .tooltip-container {
+            position: relative;
+            display: inline-block;
+            margin-left: 6px;
+        }
+
+        .tooltip-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            /*background-color: var(--text-lighter);*/
+            border: 1px solid var(--text-lighter);
+            color: var(--text-lighter);
+            font-size: 10px;
+            cursor: pointer;
+            transform: translateY(-6px);
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            position: absolute;
+            z-index: 1;
+            width: 300px;
+            background-color: white;
+            color: var(--text);
+            text-align: left;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            font-weight: normal;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip-container:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Add a triangle pointer */
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: white transparent transparent transparent;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .question {
+            margin-bottom: 2.5rem;
+        }
+
+        .question-header {
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .question-header h3 {
+            min-height: 60px;
+        }
+
+        .question-header .subhead {
+            color: var(--text-light);
+        }
+
+        .answer-section {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 1.5rem;
+        }
+
+        .answer-section h4 {
+            margin: 0.5rem 0;
+            color: var(--primary);
+        }
+
+        .answer-section .small {
+            margin: 1rem 0;
+            font-size: 0.7rem;
+            font-weight: normal;
+            max-width: 600px;
+            text-align: justify;
+            text-justify: inter-word;
+            color: var(--text-lighter);
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .option {
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option .option-text {
+            user-select: none;
+        }
+
+        .option.selected {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .option:hover:not(.selected) {
+            background-color: var(--primary-light);
+            color: white;
+        }
+
+        .button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+            margin: 1rem auto;
+            display: block;
+        }
+
+        .button:hover {
+            background-color: var(--primary-light);
+        }
+
+        .progress-container {
+            margin-bottom: 2rem;
+        }
+
+        .progress {
+            height: 8px;
+            background-color: var(--border);
+            border-radius: 4px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+        }
+
+        .results-table th, .results-table td {
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .results-table th {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .results-table .topic-cell {
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .warning-row {
+            background-color: var(--warning-bg);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+        }
+
+        @media (max-width: 640px) {
+            .options {
+                grid-template-columns: repeat(3, 1fr);
+                grid-template-rows: repeat(2, 1fr);
+            }
+
+            .option .option-text {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Опросник о ловушках</h1>
+
+    <div id="test-container" class="card">
+        <div class="progress-container">
+            <div class="progress">
+                <div id="progress-bar" class="progress-bar" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <div id="question-container"></div>
+
+        <button id="next-btn" class="button">Далее</button>
+    </div>
+
+    <div id="results-container" class="card hidden">
+        <h2>Результаты теста</h2>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div style="width: 16px; height: 16px; background-color: var(--warning-bg); margin-right: 8px; border: 1px solid var(--border);"></div>
+                <span>Возможная проблемная схема (значение 4-6)</span>
+            </div>
+        </div>
+
+        <table class="results-table">
+            <thead>
+            <tr>
+                <th>Схема</th>
+                <th>Детство (Q1)</th>
+                <th>Сейчас (Q1)</th>
+                <th>Детство (Q2)</th>
+                <th>Сейчас (Q2)</th>
+                <th>Макс</th>
+            </tr>
+            </thead>
+            <tbody id="results-body"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+  // Define the topics
+  const topics = [
+    "Отверженность",
+    "Недоверие",
+    "Уязвимость",
+    "Зависимость",
+    "Эмоциональная депривация",
+    "Изгнание",
+    "Неполноценность",
+    "Несостоятельность",
+    "Покорность",
+    "Завышенные стандарты",
+    "Избранность"
+  ];
+
+  // Define the questions (2 per topic)
+  const questions = [
+    {
+      id: 1,
+      text: "Я привязан к близким людям, потому что боюсь, что они меня бросят.",
+      topic: "Отверженность"
+    },
+    {
+      id: 2,
+      text: "Я сильно переживаю, что любимые люди найдут кого-то другого и бросят меня.",
+      topic: "Отверженность"
+    },
+    {
+      id: 3,
+      text: "Я обычно думаю о том, какие внутренние мотивы движут людьми; мне непросто доверять людям.",
+      topic: "Недоверие"
+    },
+    {
+      id: 4,
+      text: "Мне кажется, что с людьми всегда нужно быть начеку, иначе они могут причинить мне боль.",
+      topic: "Недоверие"
+    },
+    {
+      id: 5,
+      text: "Я сильнее других переживаю из-за опасностей - что я заболею или мне будет причинен какой-либо вред.",
+      topic: "Уязвимость"
+    },
+    {
+      id: 6,
+      text: "Я боюсь, что я (или моя семья) останутся без денег и будут испытывать сильную нужду или начну зависеть от других.",
+      topic: "Уязвимость"
+    },
+    {
+      id: 7,
+      text: "Мне кажется, что я с трудом смогу жить самостоятельно, и я чувствую, что мне нужна помощь других людей.",
+      topic: "Зависимость"
+    },
+    {
+      id: 8,
+      text: "Я и мои родители были склонны слишком сильно углубляться в проблемы друг друга.",
+      topic: "Зависимость"
+    },
+    {
+      id: 9,
+      text: "В моей жизни не было человека, который заботился бы обо мне, уделял мне время или серьезно переживал о том, что со мной происходит.",
+      topic: "Эмоциональная депривация"
+    },
+    {
+      id: 10,
+      text: "Люди не удовлетворяли моих эмоциональных потребностей в понимании, сочувствии, наставлении, советах и поддержке.",
+      topic: "Эмоциональная депривация"
+    },
+    {
+      id: 11,
+      text: "Мне кажется, что мне нигде нет места. Я не такой, как все. Я никуда не вписываюсь.",
+      topic: "Изгнание"
+    },
+    {
+      id: 12,
+      text: "Я скучный и занудный; я не знаю, о чем разговаривать с людьми.",
+      topic: "Изгнание"
+    },
+    {
+      id: 13,
+      text: "Те, кто мне нравится, никогда не любили меня настоящего, со всеми моими недостатками.",
+      topic: "Неполноценность"
+    },
+    {
+      id: 14,
+      text: "Я стыжусь себя; я не заслуживаю любви, внимания и уважения других.",
+      topic: "Неполноценность"
+    },
+    {
+      id: 15,
+      text: "Я не такой умный или умелый, как большинство людей, когда дело касается работы (или учебы).",
+      topic: "Несостоятельность"
+    },
+    {
+      id: 16,
+      text: "Я часто чувствую себя неполноценным, потому что другие люди талантливее, умнее и успешнее меня.",
+      topic: "Несостоятельность"
+    },
+    {
+      id: 17,
+      text: "Мне кажется, что у меня нет выбора - нужно выполнять желания других людей, иначе они отомстят или каким-то образом отвергнут меня.",
+      topic: "Покорность"
+    },
+    {
+      id: 18,
+      text: "Люди считают, что я делаю слишком много для других и недостаточно для себя.",
+      topic: "Покорность"
+    },
+    {
+      id: 19,
+      text: "Я стремлюсь к идеалу; средний результат меня не устроит. Я хочу быть лучше всех в своем деле.",
+      topic: "Завышенные стандарты"
+    },
+    {
+      id: 20,
+      text: "Мне нужно столько сделать, что у меня почти нет времени расслабиться и по-настоящему повеселиться.",
+      topic: "Завышенные стандарты"
+    },
+    {
+      id: 21,
+      text: "Я считаю, что мне не нужно подчиняться правилам и нормам, как другим людям.",
+      topic: "Избранность"
+    },
+    {
+      id: 22,
+      text: "Мне не хватает дисциплины, чтобы выполнять скучные задачи или контролировать эмоции.",
+      topic: "Избранность"
+    }
+  ];
+
+  // Define the answer options
+  const options = [
+    {value: 1, text: "Совершенно не обо мне"},
+    {value: 2, text: "В основном неверно"},
+    {value: 3, text: "Скорее верно, чем неверно"},
+    {value: 4, text: "Верно в небольшой степени"},
+    {value: 5, text: "В основном верно"},
+    {value: 6, text: "Идеально описывает меня"}
+  ];
+
+  // Global variables
+  let currentQuestionIndex = 0;
+  const answers = {};
+
+  // DOM elements
+  const questionContainer = document.getElementById("question-container");
+  const nextButton = document.getElementById("next-btn");
+  const progressBar = document.getElementById("progress-bar");
+  const testContainer = document.getElementById("test-container");
+  const resultsContainer = document.getElementById("results-container");
+  const resultsBody = document.getElementById("results-body");
+
+  // Initialize the test
+  function initTest() {
+    topics.forEach(topic => {
+      answers[topic] = {
+        q1: {childhood: null, now: null},
+        q2: {childhood: null, now: null}
+      };
+    });
+
+    displayQuestion();
+    updateProgressBar();
+
+    nextButton.addEventListener("click", handleNextQuestion);
+  }
+
+  // Display the current question
+  function displayQuestion() {
+    const question = questions[currentQuestionIndex];
+
+    const html = `
+    <div class="question">
+      <div class="question-header">
+        <div class="subhead">Вопрос ${currentQuestionIndex + 1} из ${questions.length}</div>
+        <h3>${question.text}</h3>
+      </div>
+
+      <div class="answer-section">
+        <h4>
+          Как это было в детстве
+          <span class="tooltip-container">
+            <span class="tooltip-icon">?</span>
+            <span class="tooltip-text">Если в разные моменты детства вы ответили бы по-разному, выберите значение, которое больше подходит для возраста до двенадцати лет</span>
+          </span>
+        </h4>
+        <div class="options" data-type="childhood">
+          ${options.map(option => `
+            <div class="option" data-value="${option.value}">
+              <div class="option-text">${option.text}</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+
+      <div class="answer-section">
+        <h4>
+          Как это сейчас
+          <span class="tooltip-container">
+            <span class="tooltip-icon">?</span>
+            <span class="tooltip-text">Если в разные периоды вашей жизни ответ был бы разным, поставьте оценку в соответствии со своими чувствами в последние полгода</span>
+          </span>
+        </h4>
+        <div class="options" data-type="now">
+          ${options.map(option => `
+            <div class="option" data-value="${option.value}">
+              <div class="option-text">${option.text}</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    </div>
+  `;
+
+    questionContainer.innerHTML = html;
+
+    // Add event listeners to options
+    document.querySelectorAll(".option").forEach(option => {
+      option.addEventListener("click", handleOptionClick);
+    });
+
+    // Update next button state
+    updateNextButtonState();
+  }
+
+  // Handle option click
+  function handleOptionClick(event) {
+    const option = event.currentTarget;
+    const optionsContainer = option.parentElement;
+    const type = optionsContainer.dataset.type;
+    const value = parseInt(option.dataset.value);
+
+    // Deselect all options in the same container
+    optionsContainer.querySelectorAll(".option").forEach(opt => {
+      opt.classList.remove("selected");
+    });
+
+    // Select the clicked option
+    option.classList.add("selected");
+
+    // Save the answer
+    const question = questions[currentQuestionIndex];
+    const topicQuestions = questions.filter(q => q.topic === question.topic);
+    const isFirstQuestion = topicQuestions[0].id === question.id;
+
+    if (isFirstQuestion) {
+      answers[question.topic].q1[type] = value;
+    } else {
+      answers[question.topic].q2[type] = value;
+    }
+
+    updateNextButtonState();
+  }
+
+  // Update next button state based on answers
+  function updateNextButtonState() {
+    const question = questions[currentQuestionIndex];
+    const topicQuestions = questions.filter(q => q.topic === question.topic);
+    const isFirstQuestion = topicQuestions[0].id === question.id;
+
+    const childSelected = document.querySelector(`.options[data-type="childhood"] .selected`);
+    const nowSelected = document.querySelector(`.options[data-type="now"] .selected`);
+
+    const bothSelected = childSelected && nowSelected;
+
+    nextButton.disabled = !bothSelected;
+    nextButton.style.opacity = bothSelected ? "1" : "0.5";
+  }
+
+  // Handle next question button click
+  function handleNextQuestion() {
+    currentQuestionIndex++;
+
+    if (currentQuestionIndex >= questions.length) {
+      showResults();
+    } else {
+      displayQuestion();
+      updateProgressBar();
+    }
+  }
+
+  // Update progress bar
+  function updateProgressBar() {
+    const progressPercentage = (currentQuestionIndex / questions.length) * 100;
+    progressBar.style.width = `${progressPercentage}%`;
+  }
+
+  // Show results
+  function showResults() {
+    testContainer.classList.add("hidden");
+    resultsContainer.classList.remove("hidden");
+
+    // Generate results table
+    let resultsHtml = "";
+
+    topics.forEach(topic => {
+      const topicData = answers[topic];
+
+      const childhood1 = topicData.q1.childhood;
+      const now1 = topicData.q1.now;
+      const childhood2 = topicData.q2.childhood;
+      const now2 = topicData.q2.now;
+
+      const max = Math.max(childhood1, now1, childhood2, now2);
+      const isWarning = max >= 4;
+
+      resultsHtml += `
+                    <tr class="${isWarning ? 'warning-row' : ''}">
+                        <td class="topic-cell">${topic}</td>
+                        <td>${childhood1}</td>
+                        <td>${now1}</td>
+                        <td>${childhood2}</td>
+                        <td>${now2}</td>
+                        <td><strong>${max}</strong></td>
+                    </tr>
+                `;
+    });
+
+    resultsBody.innerHTML = resultsHtml;
+  }
+
+  // Start the test
+  initTest();
+</script>
+</body>
+</html>
