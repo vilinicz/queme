@@ -16,6 +16,16 @@
             --bg: #ffffff;
             --bg-card: #f9fafb;
             --border: #e5e7eb;
+            --warning-childhood: rgba(251, 146, 60, 0.2); /* Light orange */
+            --warning-adult: rgba(239, 68, 68, 0.2); /* Red */
+        }
+
+        .warning-row-childhood {
+            background-color: var(--warning-childhood);
+        }
+
+        .warning-row-adult {
+            background-color: var(--warning-adult);
         }
 
         body {
@@ -320,8 +330,12 @@
 
         <div class="legend">
             <div class="legend-item">
-                <div style="width: 16px; height: 16px; background-color: var(--warning-bg); margin-right: 8px; border: 1px solid var(--border);"></div>
-                <span>Возможная проблемная схема (значение 4-6)</span>
+                <div style="width: 16px; height: 16px; background-color: var(--warning-childhood); margin-right: 8px; border: 1px solid var(--border);"></div>
+                <span>Проблемная схема в детстве (значение 4-6)</span>
+            </div>
+            <div class="legend-item">
+                <div style="width: 16px; height: 16px; background-color: var(--warning-adult); margin-right: 8px; border: 1px solid var(--border);"></div>
+                <span>Проблемная схема сейчас (значение 4-6)</span>
             </div>
         </div>
 
@@ -644,23 +658,33 @@
       const childhood2 = topicData.q2.childhood;
       const now2 = topicData.q2.now;
 
-      const max = Math.max(childhood1, now1, childhood2, now2);
-      const isWarning = max >= 4;
+      // Get max values for childhood and adulthood separately
+      const maxChildhood = Math.max(childhood1, childhood2);
+      const maxNow = Math.max(now1, now2);
+
+      // Determine row class based on scores
+      let rowClass = '';
+      if (maxNow >= 4) {
+        rowClass = 'warning-row-adult';
+      } else if (maxChildhood >= 4) {
+        rowClass = 'warning-row-childhood';
+      }
 
       resultsHtml += `
-                    <tr class="${isWarning ? 'warning-row' : ''}">
-                        <td class="topic-cell">${topic}</td>
-                        <td>${childhood1}</td>
-                        <td>${now1}</td>
-                        <td>${childhood2}</td>
-                        <td>${now2}</td>
-                        <td><strong>${max}</strong></td>
-                    </tr>
-                `;
+            <tr class="${rowClass}">
+                <td class="topic-cell">${topic}</td>
+                <td>${childhood1}</td>
+                <td>${now1}</td>
+                <td>${childhood2}</td>
+                <td>${now2}</td>
+                <td><strong>${Math.max(maxChildhood, maxNow)}</strong></td>
+            </tr>
+        `;
     });
 
     resultsBody.innerHTML = resultsHtml;
   }
+
 
   // Start the test
   initTest();
