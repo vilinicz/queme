@@ -34,7 +34,6 @@
         }
 
 
-
         h1 {
             text-align: center;
             color: var(--primary);
@@ -74,7 +73,7 @@
             padding: 8px 12px;
             font-size: 0.85rem;
             font-weight: normal;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             bottom: 125%;
             left: 50%;
             transform: translateX(-50%);
@@ -262,6 +261,31 @@
 
             .option .option-text {
                 font-size: 0.8rem;
+            }
+
+            /* Tooltip adjustments for mobile */
+            .tooltip-container {
+                position: static;
+                display: inline-block;
+            }
+
+            .tooltip-text {
+                width: calc(100vw - 60px);
+                left: 50%;
+                transform: translateX(-50%);
+                position: fixed;
+                top: 50%;
+                margin-top: -50px;
+            }
+
+            .tooltip-text::after {
+                display: none;
+            }
+
+            /* For mobile-specific tap behavior */
+            .tooltip-visible {
+                visibility: visible !important;
+                opacity: 1 !important;
             }
         }
     </style>
@@ -631,6 +655,45 @@
 
   // Start the test
   initTest();
+
+  // Handle tooltips on mobile
+  document.addEventListener('DOMContentLoaded', function () {
+    // Function to initialize tooltip handlers
+    function initTooltips() {
+      // Add click listeners to all tooltip icons
+      document.querySelectorAll('.tooltip-icon').forEach(icon => {
+        icon.addEventListener('click', function (e) {
+          e.stopPropagation(); // Prevent event bubbling
+
+          // Close any open tooltips first
+          document.querySelectorAll('.tooltip-text').forEach(tip => {
+            tip.classList.remove('tooltip-visible');
+          });
+
+          // Toggle this tooltip
+          const tooltip = this.nextElementSibling;
+          tooltip.classList.toggle('tooltip-visible');
+        });
+      });
+    }
+
+    // Call init when page loads
+    initTooltips();
+
+    // Also initialize tooltips when questions change
+    const originalDisplayQuestion = displayQuestion;
+    displayQuestion = function () {
+      originalDisplayQuestion();
+      initTooltips();
+    };
+
+    // Close tooltips when clicking anywhere else
+    document.addEventListener('click', function () {
+      document.querySelectorAll('.tooltip-text').forEach(tooltip => {
+        tooltip.classList.remove('tooltip-visible');
+      });
+    });
+  });
 </script>
 </body>
 </html>
